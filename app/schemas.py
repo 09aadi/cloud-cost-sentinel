@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from datetime import date
 
 
 class CloudAccountCreate(BaseModel):
@@ -15,3 +16,17 @@ class CloudAccountOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CostRecordCreate(BaseModel):
+    service_name: str
+    amount: float
+    date: date
+
+
+class CostRecordOut(BaseModel):
+    id: int
+    cloud_account_id: int
+    service_name: str
+    amount: float
+    date: date
+    created_at: datetime
