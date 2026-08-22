@@ -37,3 +37,11 @@ def create_cost_record(account_id: int, record: schemas.CostRecordCreate, db: Se
     db.commit()
     db.refresh(new_cost_record)
     return new_cost_record
+
+@app.get("/accounts/{account_id}/cost_records", response_model=List[schemas.CostRecordOut])
+def list_all_cost_records(account_id: int, db: Session = Depends(get_db)):
+    account = db.query(models.CloudAccount).filter(models.CloudAccount.id == account_id).first()
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    return db.query(models.CostRecord).filter(models.CostRecord.cloud_account_id == account_id).all()
