@@ -30,3 +30,9 @@ class CostRecordOut(BaseModel):
     amount: float
     date: date
     created_at: datetime
+
+class AnomalyOut(BaseModel):
+    date: date
+    amount: float
+    average: float
+    pct_above: float
