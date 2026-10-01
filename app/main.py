@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import engine, get_db
 from typing import List
+from app.anomaly import compute_anomalies
+from app.cache import get_cached_summary, set_cached_summary
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
@@ -43,3 +45,28 @@ def list_all_cost_records(account_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Account not found")
     
     return db.query(models.CostRecord).filter(models.CostRecord.cloud_account_id == account_id).all()
+
+@app.get("/accounts/{account_id}/anomalies", response_model=List[schemas.AnomalyOut])
+def get_anomalies(account_id: int, db: Session = Depends(get_db)):
+    account = db.query(models.CloudAccount).filter(models.CloudAccount.id == account_id).first()
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+    records = db.query(models.CostRecord).filter(models.CostRecord.cloud_account_id == account_id).all()
+    return compute_anomalies(records)
+
+
+@app.get("/accounts/{account_id}/summary")
+def get_summary(account_id: int, db: Session = Depends(get_db)):
+    account = db.query(models.CloudAccount).filter(models.CloudAccount.id == account_id).first()
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    cached = get_cached_summary(account_id)
+    if cached is not None:
+        return {**cached, "source": "cache"}
+
+    records = db.query(models.CostRecord).filter(models.CostRecord.cloud_account_id == account_id).all()
+    total = sum(r.amount for r in records)
+    summary = {"account_id": account_id, "total_spend": total, "record_count": len(records)}
+    set_cached_summary(account_id, summary)
+    return {**summary, "source": "db"}
