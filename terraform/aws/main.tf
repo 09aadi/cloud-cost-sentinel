@@ -52,12 +52,16 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.30"
+  cluster_version = "1.36"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access = true # fine for a learning project; would be false/restricted in production
+
+  # Gives the IAM identity running terraform cluster-admin via an EKS access entry.
+  # Without this, kubectl returns "Unauthorized" even for the cluster's creator.
+  enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_groups = {
     default = {
@@ -65,6 +69,7 @@ module "eks" {
       max_size       = 2
       desired_size   = 1
       instance_types = ["t3.medium"]
+      ami_type       = "AL2023_x86_64_STANDARD" # AL2 AMIs aren't published for newer EKS versions
     }
   }
 }
