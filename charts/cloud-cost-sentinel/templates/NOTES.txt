@@ -1,0 +1,11 @@
+Installed {{ .Chart.Name }}.
+
+Watch it come up (postgres first, then the api init container releases):
+  kubectl get pods -w
+
+Reach the API from your laptop (no load balancer is created):
+  kubectl port-forward svc/api 8000:{{ .Values.api.port }}
+  curl http://localhost:8000/health
+  curl http://localhost:8000/ready
+
+Interactive docs: http://localhost:8000/docs
