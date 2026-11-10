@@ -49,8 +49,9 @@ The application is not deployed to the cluster yet. The cluster itself is provis
 - [x] Containerised, with a local Compose stack
 - [x] Remote Terraform state (S3 + DynamoDB locking)
 - [x] VPC and EKS provisioned from Terraform, verified with `kubectl`, destroyed cleanly
-- [ ] `/health` endpoint, image pushed to ECR (built for `linux/amd64`)
-- [ ] Helm chart (probes, startup ordering, secrets kept out of git) deployed to EKS
+- [x] `/health` (liveness) and `/ready` (database check) endpoints
+- [ ] ECR repository applied, image built for `linux/amd64` and pushed (Terraform and `make image` written, not run yet)
+- [ ] Helm chart deployed to EKS (chart written: probes, init-container startup ordering, secret kept out of git; not yet linted or deployed)
 - [ ] CI with GitHub Actions: build, scan (Trivy, Checkov), push via OIDC (no stored AWS keys)
 - [ ] GitOps delivery with ArgoCD
 - [ ] Metrics and dashboards (Prometheus, Grafana)

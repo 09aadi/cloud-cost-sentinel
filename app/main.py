@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import engine, get_db
@@ -8,6 +9,25 @@ from app.cache import get_cached_summary, set_cached_summary
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
+
+
+@app.get("/health")
+def health():
+    # Liveness: the process is up and serving. Deliberately does NOT touch the
+    # database or Redis -- if liveness depended on them, a database outage would
+    # make Kubernetes restart healthy API pods and make the outage worse.
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+def ready(db: Session = Depends(get_db)):
+    # Readiness: can this pod serve real traffic? Checks the database only.
+    # Redis is an optimisation (cached summaries), not a hard dependency.
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="database unavailable")
+    return {"status": "ready"}
 
 @app.post("/accounts", response_model=schemas.CloudAccountOut)
 def create_account(account: schemas.CloudAccountCreate, db: Session = Depends(get_db)):

@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS base
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -7,8 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
 
-RUN useradd --create-home appuser
-USER appuser
+# Numeric UID on purpose: Kubernetes can only enforce runAsNonRoot when the
+# image's user is a number, not a name like "appuser".
+RUN useradd --create-home --uid 10001 appuser
+USER 10001
 
 EXPOSE 8000
 

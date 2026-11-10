@@ -1,0 +1,33 @@
+# The image tag has no default on purpose: ECR tags are immutable and are the git
+# short SHA, so a deploy must always say exactly which build it wants.
+#   helm upgrade --install ccs charts/cloud-cost-sentinel \
+#     --set image.repository=<ecr-url> --set image.tag=<git-sha>
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Name of a Kubernetes Secret holding the key "password" (the Postgres password).
+# Created OUTSIDE git, before installing the chart:
+#   kubectl create secret generic ccs-db --from-literal=password="$(openssl rand -hex 16)"
+# hex => letters and digits only, so it is safe inside a connection URL.
+dbSecret: ccs-db
+
+database:
+  name: cloudcostsentinel
+  image: postgres:16
+
+redis:
+  image: redis:7
+
+api:
+  port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

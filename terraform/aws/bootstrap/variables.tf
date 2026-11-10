@@ -12,3 +12,8 @@ variable "lock_table_name" {
   type    = string
   default = "cloud-cost-sentinel-tf-locks"
 }
+
+variable "ecr_repository_name" {
+  type    = string
+  default = "cloud-cost-sentinel"
+}
